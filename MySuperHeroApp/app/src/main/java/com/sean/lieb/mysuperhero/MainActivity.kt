@@ -1,6 +1,8 @@
 package com.sean.lieb.mysuperhero
 
+import android.nfc.Tag
 import android.os.Bundle
+import android.util.Log
 import android.view.Menu
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.navigation.NavigationView
@@ -12,12 +14,17 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.sean.lieb.mysuperhero.databinding.ActivityMainBinding
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
-
+    val TAG = javaClass.simpleName
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -27,8 +34,9 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(binding.appBarMain.toolbar)
 
         binding.appBarMain.fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
+//            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+//                .setAction("Action", null).show()
+            searchForSuperHero()
         }
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
@@ -42,9 +50,44 @@ class MainActivity : AppCompatActivity() {
         )
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
+
+
     }
 
-    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+    internal fun searchForSuperHero(){
+        Log.d("Mainactivity","getting Data")
+        val retrofit = Retrofit.Builder()
+            .baseUrl(BaseUrl)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+
+        val service = retrofit.create(SuperheroService::class.java)
+        val call = service.getSearchNameResults(queryType, queryValue)
+
+        call.enqueue(object : Callback<SuperheroResponse> {
+            override fun onResponse(call: Call<SuperheroResponse>, response: Response<SuperheroResponse>) {
+                if (response.code() == 200) {
+                    Log.d(TAG, "Response OK!")
+                    val superHeroResponse = response.body()!!
+                    Log.d(TAG, "Results FOR: "+superHeroResponse.resultsFor)
+                }
+            }
+            override fun onFailure(call: Call<SuperheroResponse>, t: Throwable) {
+
+                Log.d(TAG, "Response NOT OK! Error: \n $t")
+            }
+        })
+
+    }
+
+    companion object {
+        var BaseUrl = "https://www.superheroapi.com/"
+        var queryType = "search/"
+        var queryValue = "Wonder"
+    }
+
+
+        override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.main, menu)
         return true

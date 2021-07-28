@@ -1,9 +1,12 @@
 package com.sean.lieb.mysuperhero
 
+import android.content.Intent
 import android.nfc.Tag
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
+import android.view.View
+import android.widget.Button
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
@@ -14,13 +17,19 @@ import androidx.navigation.ui.setupWithNavController
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.sean.lieb.mysuperhero.databinding.ActivityMainBinding
+//import com.sean.lieb.mysuperhero.ui.home.searchClassName
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
+
+
 class MainActivity : AppCompatActivity() {
+
+    val searchPackageName = "com.sean.lieb.SearchModule"
+    private val searchClassName = "$searchPackageName.SearchActivity"
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var binding: ActivityMainBinding
@@ -34,9 +43,9 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(binding.appBarMain.toolbar)
 
         binding.appBarMain.fab.setOnClickListener { view ->
-//            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                .setAction("Action", null).show()
-            searchForSuperHero()
+            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show()
+//            searchForSuperHero()
         }
         val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
@@ -51,11 +60,29 @@ class MainActivity : AppCompatActivity() {
         setupActionBarWithNavController(navController, appBarConfiguration)
         navView.setupWithNavController(navController)
 
+        val buttonSearch : Button = findViewById(R.id.btn_load_Search)
+//        val buttonSearch : Button = binding.btnLoadSearch
+//            buttonSearch.setOnClickListener(
+//            val intent = Intent(this@MainActivity,SearchActivity::class.java)
+//            launchActivity(searchClassName)
+//        )
 
     }
 
+//    private fun launchActivity(searchClassName: String): View.OnClickListener? {
+////        var intentSend = Intent(this, SearchActivity::class.java)
+//    }
+
+//    private fun launchActivity(className: String): View.OnClickListener? {
+//        Intent().setClassName(packageName, className)
+//            .also {
+//                startActivity(it)
+//            }
+//    }
+
     internal fun searchForSuperHero(){
-        Log.d("Mainactivity","getting Data")
+        Log.d(TAG,"getting Data")
+        Log.d(TAG, "Searching for: $queryValue")
         val retrofit = Retrofit.Builder()
             .baseUrl(BaseUrl)
             .addConverterFactory(GsonConverterFactory.create())
@@ -69,7 +96,7 @@ class MainActivity : AppCompatActivity() {
                 if (response.code() == 200) {
                     Log.d(TAG, "Response OK!")
                     val superHeroResponse = response.body()!!
-                    Log.d(TAG, "Results FOR: "+superHeroResponse.resultsFor)
+                    Log.d(TAG, "Results came back for: "+superHeroResponse.resultsFor)
                 }
             }
             override fun onFailure(call: Call<SuperheroResponse>, t: Throwable) {
@@ -97,4 +124,6 @@ class MainActivity : AppCompatActivity() {
         val navController = findNavController(R.id.nav_host_fragment_content_main)
         return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
     }
+
+
 }
